@@ -22,7 +22,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       <aside className="w-64 border-r border-border bg-card">
         <div className="p-6">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            InventoryPro
+            Easify
           </h1>
         </div>
         <nav className="px-3 space-y-1">
