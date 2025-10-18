@@ -11,7 +11,7 @@ export const mockProducts: Product[] = [
   {
     id: "1",
     name: "Smartphone X",
-    photo: "📱",
+    photo: [],
     categoryId: "1",
     description: "Latest smartphone with advanced features",
     price: 999,
@@ -20,7 +20,7 @@ export const mockProducts: Product[] = [
   {
     id: "2",
     name: "Laptop Pro",
-    photo: "💻",
+    photo: [],
     categoryId: "1",
     description: "High-performance laptop for professionals",
     price: 1499,
@@ -29,7 +29,7 @@ export const mockProducts: Product[] = [
   {
     id: "3",
     name: "Wireless Earbuds",
-    photo: "🎧",
+    photo: [],
     categoryId: "1",
     description: "Premium wireless earbuds with noise cancellation",
     price: 199,
@@ -38,7 +38,7 @@ export const mockProducts: Product[] = [
   {
     id: "4",
     name: "Cotton T-Shirt",
-    photo: "👕",
+    photo: [],
     categoryId: "2",
     description: "Comfortable cotton t-shirt",
     price: 29,
@@ -47,7 +47,7 @@ export const mockProducts: Product[] = [
   {
     id: "5",
     name: "Denim Jeans",
-    photo: "👖",
+    photo: [],
     categoryId: "2",
     description: "Classic denim jeans",
     price: 79,
@@ -56,7 +56,7 @@ export const mockProducts: Product[] = [
   {
     id: "6",
     name: "JavaScript Guide",
-    photo: "📘",
+    photo: [],
     categoryId: "3",
     description: "Comprehensive JavaScript programming guide",
     price: 49,

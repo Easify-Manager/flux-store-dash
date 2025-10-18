@@ -7,7 +7,7 @@ export interface Category {
 export interface Product {
   id: string;
   name: string;
-  photo: string;
+  photo: string[]; // Array of image URLs from backend
   categoryId: string;
   description: string;
   price: number;

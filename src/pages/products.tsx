@@ -20,60 +20,77 @@ import {
 } from "@/components/ui/select";
 import { mockProducts, mockCategories } from "@/shared/lib/mock-data";
 import { Product } from "@/shared/types";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import { productApi } from "@/shared/lib/api";
+
+const DEFAULT_PRODUCT_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect fill='%23e5e7eb' width='200' height='200'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='48' fill='%239ca3af'%3E📦%3C/text%3E%3C/svg%3E";
 
 const Products = () => {
   const [products, setProducts] = useState<Product[]>(mockProducts);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [formData, setFormData] = useState({
     name: "",
-    photo: "",
     categoryId: "",
     description: "",
     price: "",
     quantity: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (editingProduct) {
-      setProducts(
-        products.map((p) =>
-          p.id === editingProduct.id
-            ? {
-                ...editingProduct,
-                ...formData,
-                price: parseFloat(formData.price),
-                quantity: parseInt(formData.quantity),
-              }
-            : p
-        )
-      );
-      toast.success("Product updated successfully");
-    } else {
-      const newProduct: Product = {
-        id: Date.now().toString(),
+      // Update existing product
+      const updatedProduct = {
+        ...editingProduct,
         ...formData,
         price: parseFloat(formData.price),
         quantity: parseInt(formData.quantity),
       };
+      
+      // Upload new images if selected
+      if (selectedFiles.length > 0) {
+        const imageUrls = await productApi.uploadImages(editingProduct.id, selectedFiles);
+        updatedProduct.photo = [...editingProduct.photo, ...imageUrls];
+      }
+      
+      setProducts(products.map((p) => (p.id === editingProduct.id ? updatedProduct : p)));
+      toast.success("Product updated successfully");
+    } else {
+      // Create new product
+      const newProduct = await productApi.create({
+        name: formData.name,
+        categoryId: formData.categoryId,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        quantity: parseInt(formData.quantity),
+      });
+      
+      // Upload images if selected
+      if (selectedFiles.length > 0) {
+        const imageUrls = await productApi.uploadImages(newProduct.id, selectedFiles);
+        newProduct.photo = imageUrls;
+      }
+      
       setProducts([...products, newProduct]);
       toast.success("Product created successfully");
     }
+    
     resetForm();
   };
 
   const resetForm = () => {
     setFormData({
       name: "",
-      photo: "",
       categoryId: "",
       description: "",
       price: "",
       quantity: "",
     });
+    setSelectedFiles([]);
     setEditingProduct(null);
     setIsDialogOpen(false);
   };
@@ -82,7 +99,6 @@ const Products = () => {
     setEditingProduct(product);
     setFormData({
       name: product.name,
-      photo: product.photo,
       categoryId: product.categoryId,
       description: product.description,
       price: product.price.toString(),
@@ -117,30 +133,38 @@ const Products = () => {
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Product Name</Label>
+              <div className="space-y-2">
+                <Label htmlFor="name">Product Name</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="images">Product Images</Label>
+                <div className="flex items-center gap-2">
                   <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    required
+                    id="images"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      setSelectedFiles(files);
+                    }}
+                    className="flex-1"
                   />
+                  <ImageIcon className="h-4 w-4 text-muted-foreground" />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="photo">Photo (Emoji)</Label>
-                  <Input
-                    id="photo"
-                    value={formData.photo}
-                    onChange={(e) =>
-                      setFormData({ ...formData, photo: e.target.value })
-                    }
-                    placeholder="📦"
-                    required
-                  />
-                </div>
+                {selectedFiles.length > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    {selectedFiles.length} file(s) selected
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
@@ -222,7 +246,11 @@ const Products = () => {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="text-4xl">{product.photo}</div>
+                    <img
+                      src={product.photo[0] || DEFAULT_PRODUCT_IMAGE}
+                      alt={product.name}
+                      className="w-16 h-16 object-cover rounded-md"
+                    />
                     <div>
                       <CardTitle className="text-lg">{product.name}</CardTitle>
                       <p className="text-sm text-muted-foreground mt-1">
